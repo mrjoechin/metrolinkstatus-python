@@ -108,8 +108,7 @@ def main():
                             "VIA PRINCESSA": "Via Princessa",
                             "VINCENT GRADE/ACTON": "Vincent Grade/Acton",
                             "WEST CORONA": "Corona - West",
-                            "SAN BERNARDINO-DOWNTOWN": "San Bernardino - Downtown"
-    }
+                            "SAN BERNARDINO-DOWNTOWN": "San Bernardino - Downtown"}
 
     #metrolink train statuses
     trainStatus = { "ON TIME":"good",
@@ -149,8 +148,7 @@ def main():
                             '{:<6}'.format(scheduledStop["TrainDesignation"]), 
                             scheduledStop["TrainDestination"], 
                             scheduledStop["FormattedTrackDesignation"], 
-                            trainStatus[scheduledStop["CalculatedStatus"]])
-                ))
+                            trainStatus[scheduledStop["CalculatedStatus"]])))
 
         if len(trains) == 0:
             trains.append("{\"text\":\"No More Scheduled Stops Today\"}")
