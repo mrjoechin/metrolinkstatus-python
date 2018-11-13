@@ -39,8 +39,8 @@ def main():
                         "91/PV Line": "91",
                         "91PV Line": "91",
                         "AV LINE": "AV",
-                        "IE LINE": "IEOC",
-                        "IEOC LINE": "IEOC",
+                        "IE LINE": "IE",
+                        "IEOC LINE": "IE",
                         "OC LINE": "OC",
                         "SB LINE": "SB",
                         "VT LINE": "VT"}
@@ -128,13 +128,39 @@ def main():
         for scheduledStop in stationScheduleList:
             if scheduledStop["PlatformName"] == station :
                 if debug:
-                    print("{\"text\":\"%s %s %s %s\",\"color\":\"%s\",\"mrkdwn_in\": [\"text\"]}" % ('{:<17}'.format(formatArrivalTime(scheduledStop)), lineShortName[scheduledStop["RouteCode"]], '{:<6}'.format(scheduledStop["TrainDesignation"]), scheduledStop["TrainDestination"], trainStatus[scheduledStop["CalculatedStatus"]]))        
+                    print(
+                        '''{
+                            "text":"%s %s %s %s on %s",
+                            "color":"%s",
+                            "mrkdwn_in": ["text"]
+                        }''' % ('{:<17}'.format(formatArrivalTime(scheduledStop)), 
+                                '{:<2}'.format(lineShortName[scheduledStop["RouteCode"]]), 
+                                '{:<6}'.format(scheduledStop["TrainDesignation"]), 
+                                scheduledStop["TrainDestination"], 
+                                scheduledStop["FormattedTrackDesignation"],
+                                trainStatus[scheduledStop["CalculatedStatus"]]))        
                 
-                trains.append(str("{\"text\":\"%s %s %s %s\",\"color\":\"%s\",\"mrkdwn_in\": [\"text\"]}" % ('{:<17}'.format(formatArrivalTime(scheduledStop)), lineShortName[scheduledStop["RouteCode"]], '{:<6}'.format(scheduledStop["TrainDesignation"]), scheduledStop["TrainDestination"], trainStatus[scheduledStop["CalculatedStatus"]])))
+                trains.append(str(
+                    '''{
+                        "text":"%s %s %s %s on %s",
+                        "color":"%s",
+                        "mrkdwn_in": ["text"]
+                    }''' % ('{:<17}'.format(formatArrivalTime(scheduledStop)), 
+                            '{:<2}'.format(lineShortName[scheduledStop["RouteCode"]]), 
+                            '{:<6}'.format(scheduledStop["TrainDesignation"]), 
+                            scheduledStop["TrainDestination"], 
+                            scheduledStop["FormattedTrackDesignation"], 
+                            trainStatus[scheduledStop["CalculatedStatus"]])
+                ))
 
         if len(trains) == 0:
             trains.append("{\"text\":\"No More Scheduled Stops Today\"}")
-        message = '{"text": "%s Station - Scheduled Trains","attachments": [%s]}' % (metrolinkStations[station],",".join(trains))
+        
+        message = '''{
+                        "text": "%s Station - Scheduled Trains",
+                        "attachments": [%s]}''' % (metrolinkStations[station]
+                            ,",".join(trains))
+        
         if debug:
             print(message)
 
