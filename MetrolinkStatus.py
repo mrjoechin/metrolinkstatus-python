@@ -29,7 +29,7 @@ def pushTrainStatusToSlack(slackWebhookURL,slackMessage):
 def main():
     #config
     metrolinkStationStatusURL = 'https://rtt.metrolinktrains.com/CIS/LiveTrainMap/JSON/StationScheduleList.json'
-    slackWebhookURL = 'PLACE_WEBHOOK_URL_HERE'
+    slackWebhookURL = 'https://hooks.slack.com/services/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'
     stations = ["TUSTIN","IRVINE"]
     debug = False
 
@@ -124,7 +124,7 @@ def main():
         trains = []
 
         for scheduledStop in stationScheduleList:
-            if scheduledStop["PlatformName"] == station :
+            if scheduledStop["PlatformName"] == station and trainStatus[scheduledStop["CalculatedStatus"]] != "good" :
                 if debug:
                     print(
                         '''{
@@ -151,7 +151,7 @@ def main():
                             trainStatus[scheduledStop["CalculatedStatus"]])))
 
         if len(trains) == 0:
-            trains.append("{\"text\":\"No More Scheduled Stops Today\"}")
+            trains.append("{\"text\":\"Trains are on time.\"}")
         
         message = '''{
                         "text": "%s Station - Scheduled Trains",
