@@ -3,12 +3,25 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
+
+type stationsFlag []string
+
+func (sf *stationsFlag) String() string {
+	return strings.Join(*sf, ", ")
+}
+
+func (sf *stationsFlag) Set(value string) error {
+	*sf = append(*sf, value)
+	return nil
+}
 
 type scheduledStop struct {
 	TrainDesignation               string `json:"TrainDesignation"`
@@ -38,10 +51,7 @@ type slackMsg struct {
 
 const (
 	metrolinkStationStatusURL = "https://rtt.metrolinktrains.com/CIS/LiveTrainMap/JSON/StationScheduleList.json"
-	slackWebhookURL           = "https://hooks.slack.com/services/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"
 )
-
-var stations = []string{"TUSTIN", "IRVINE"}
 
 var trainStatus = map[string]string{
 	"ON TIME":          "good",
@@ -153,8 +163,8 @@ func formatArrivalTime(stop scheduledStop) string {
 	return scheduledTime
 }
 
-func pushTrainStatusToSlack(body []byte, debug ...bool) error {
-	if len(debug) > 0 {
+func pushTrainStatusToSlack(body []byte, slackWebhookURL string, debug ...bool) error {
+	if len(debug) > 0 && debug[0] {
 		log.Println(string(body))
 	}
 
@@ -191,7 +201,7 @@ func pushTrainStatusToSlack(body []byte, debug ...bool) error {
 	return nil
 }
 
-func processStation(station string, stationScheduleList []scheduledStop) error {
+func processStation(station string, stationScheduleList []scheduledStop, debug bool, slackWebhookURL string) error {
 	var trainStatusMsgs []trainStatusMsg
 
 	for _, stop := range stationScheduleList {
@@ -228,7 +238,7 @@ func processStation(station string, stationScheduleList []scheduledStop) error {
 		return err
 	}
 
-	err = pushTrainStatusToSlack(body, true)
+	err = pushTrainStatusToSlack(body, slackWebhookURL, debug)
 	if err != nil {
 		return err
 	}
@@ -237,6 +247,14 @@ func processStation(station string, stationScheduleList []scheduledStop) error {
 }
 
 func main() {
+	var slackWebhookURL = flag.String("slack-webhook", "", "The URL of the slack webhook")
+	var debug = flag.Bool("debug", false, "Print debug info.")
+	var stations stationsFlag
+
+	flag.Var(&stations, "station", "Station to check times on.")
+
+	flag.Parse()
+
 	var stationScheduleList []scheduledStop
 
 	metroResp, err := http.Get(metrolinkStationStatusURL)
@@ -251,7 +269,7 @@ func main() {
 	}
 
 	for _, station := range stations {
-		err := processStation(station, stationScheduleList)
+		err := processStation(strings.ToUpper(station), stationScheduleList, *debug, *slackWebhookURL)
 		if err != nil {
 			log.Fatal(err)
 		}
